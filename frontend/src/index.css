@@ -1,0 +1,53 @@
+:root {
+  /* Vibrant palette */
+  --orange: #ff9f2e;
+  --orange-deep: #f07f12;
+  --peach: #ffc7a1;
+  --peach-soft: #ffe6d4;
+  --teal: #18a57f;
+  --teal-deep: #0f8466;
+  --teal-soft: #d4f3e8;
+  --coral: #f2553b;
+  --sun: #ffd23f;
+  --ink: #2b2350;
+  --ink-soft: #6c6689;
+  --cream: #fff8f1;
+  --white: #ffffff;
+  --line: #f1e4d8;
+
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 18px 40px -18px rgba(43, 35, 80, 0.25);
+
+  font-family: 'Nunito', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--cream);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
