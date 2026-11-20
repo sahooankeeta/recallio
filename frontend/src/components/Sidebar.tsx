@@ -9,6 +9,8 @@ type SidebarProps = {
   onNavigate: (view: View) => void
   onDelete: (id: string) => void
   onClearAll: () => void
+  userEmail: string
+  onLogout: () => void
 }
 
 export default function Sidebar({
@@ -17,6 +19,8 @@ export default function Sidebar({
   onNavigate,
   onDelete,
   onClearAll,
+  userEmail,
+  onLogout,
 }: SidebarProps) {
   const uploadActive = view.kind === 'upload'
   const [confirmingClear, setConfirmingClear] = useState(false)
@@ -142,6 +146,15 @@ export default function Sidebar({
         <StreakSpot />
         <h3>Recall beats re-reading</h3>
         <p>Testing yourself is the surest way to make ideas stick.</p>
+      </div>
+
+      <div className="account">
+        <span className="account__email" title={userEmail}>
+          {userEmail}
+        </span>
+        <button type="button" className="link-btn" onClick={onLogout}>
+          Log out
+        </button>
       </div>
     </aside>
   )

@@ -1,13 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import UploadPanel from './components/UploadPanel'
 import PreviewPanel from './components/PreviewPanel'
 import QuizPanel from './components/QuizPanel'
+import AuthPage from './components/AuthPage'
+import { currentUser, logout, onAuthChange, type User } from './auth'
 import { RECENT_DOCS, type UploadedDoc, type View } from './data'
 import { QUIZZES } from './quizzes'
 import './App.css'
 
 function App() {
+  // undefined = still restoring the saved session.
+  const [user, setUser] = useState<User | null | undefined>(undefined)
+
+  useEffect(() => {
+    currentUser().then(setUser)
+    // Keeps the UI in sync with sign-in via email link, token refresh, and
+    // sign-out in another tab.
+    return onAuthChange(setUser)
+  }, [])
   const [view, setView] = useState<View>({ kind: 'upload' })
   const [docs, setDocs] = useState<UploadedDoc[]>(RECENT_DOCS)
   // Bumped on "Retake" so the quiz remounts with fresh state.
@@ -53,6 +64,9 @@ function App() {
     )
   }
 
+  if (user === undefined) return null
+  if (!user) return <AuthPage onAuth={setUser} />
+
   return (
     <div className="app">
       <Sidebar
@@ -61,6 +75,12 @@ function App() {
         onNavigate={setView}
         onDelete={deleteDoc}
         onClearAll={clearAll}
+        userEmail={user.email}
+        onLogout={async () => {
+          await logout()
+          setUser(null)
+          setView({ kind: 'upload' })
+        }}
       />
       <main className="main">{render()}</main>
     </div>
