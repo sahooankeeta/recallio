@@ -40,7 +40,7 @@ function App() {
   }
 
   function render() {
-    if (!activeDoc) return <UploadPanel />
+    if (!activeDoc) return <UploadPanel userId={user!.id} />
 
     if (view.kind === 'quiz' && questions) {
       return (

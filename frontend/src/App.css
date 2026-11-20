@@ -643,21 +643,12 @@
 }
 
 .progress__bar.is-uploading {
-  animation: fill 1.6s ease-out forwards;
+  transition: width 0.3s ease-out;
 }
 
 .progress__bar.is-done {
   width: 100%;
   background: var(--teal);
-}
-
-@keyframes fill {
-  from {
-    width: 4%;
-  }
-  to {
-    width: 100%;
-  }
 }
 
 .submit {

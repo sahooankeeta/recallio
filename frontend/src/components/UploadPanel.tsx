@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent, FormEvent } from 'react'
 import { ArrowIcon, CheckIcon, CloseIcon, FileIcon } from './Icons'
 import {
@@ -7,6 +7,7 @@ import {
   HeroIllustration,
   RecallSpot,
 } from './Illustrations'
+import { uploadPdf, type UploadHandle } from '../upload'
 
 const MAX_MB = 25
 type Status = 'idle' | 'uploading' | 'done'
@@ -16,11 +17,17 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function UploadPanel() {
+export default function UploadPanel({ userId }: { userId: string }) {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
+  const [progress, setProgress] = useState(0)
+  const uploadRef = useRef<UploadHandle | null>(null)
+
+  // Stop any in-flight upload if the panel unmounts (e.g. navigating away).
+  // It resumes from where it left off when the same file is submitted again.
+  useEffect(() => () => uploadRef.current?.abort(), [])
 
   function pick(candidate: File | undefined) {
     if (!candidate) return
@@ -37,6 +44,7 @@ export default function UploadPanel() {
     }
     setError(null)
     setStatus('idle')
+    setProgress(0)
     setFile(candidate)
   }
 
@@ -52,16 +60,35 @@ export default function UploadPanel() {
   }
 
   function clear() {
+    uploadRef.current?.abort()
+    uploadRef.current = null
     setFile(null)
     setStatus('idle')
+    setProgress(0)
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!file || status === 'uploading') return
+    setError(null)
     setStatus('uploading')
-    // TODO: replace with the real upload request.
-    window.setTimeout(() => setStatus('done'), 1600)
+
+    const handle = uploadPdf(file, userId, setProgress)
+    uploadRef.current = handle
+    try {
+      await handle.done
+      if (uploadRef.current !== handle) return
+      setStatus('done')
+    } catch (err) {
+      if (uploadRef.current !== handle) return
+      console.error('[supabase] resumable upload failed', err)
+      setError(
+        'Upload interrupted. Hit “Resume upload” to continue where it stopped.',
+      )
+      setStatus('idle')
+    } finally {
+      if (uploadRef.current === handle) uploadRef.current = null
+    }
   }
 
   return (
@@ -138,11 +165,20 @@ export default function UploadPanel() {
                 <p className="file-chip__size">
                   {status === 'done'
                     ? 'Uploaded — building your cards'
-                    : formatSize(file.size)}
+                    : status === 'uploading'
+                      ? `${progress}% of ${formatSize(file.size)}`
+                      : formatSize(file.size)}
                 </p>
                 {status !== 'idle' && (
                   <span className="progress" aria-hidden="true">
-                    <span className={`progress__bar is-${status}`} />
+                    <span
+                      className={`progress__bar is-${status}`}
+                      style={
+                        status === 'uploading'
+                          ? { width: `${Math.max(4, progress)}%` }
+                          : undefined
+                      }
+                    />
                   </span>
                 )}
               </div>
@@ -173,7 +209,9 @@ export default function UploadPanel() {
               ? 'Uploading…'
               : status === 'done'
                 ? 'Submitted'
-                : 'Submit PDF'}
+                : progress > 0
+                  ? 'Resume upload'
+                  : 'Submit PDF'}
             {status === 'idle' && <ArrowIcon width={20} height={20} />}
           </button>
         </form>
