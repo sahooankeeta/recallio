@@ -35,26 +35,6 @@
   border: 0;
 }
 
-/* Signed-in account row at the bottom of the sidebar */
-.account {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 8px 0;
-  border-top: 1px solid var(--line);
-}
-
-.account__email {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
 /* ---------- Sidebar ---------- */
 .sidebar {
   position: sticky;
