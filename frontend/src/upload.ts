@@ -2,7 +2,7 @@
 // https://supabase.com/docs/guides/storage/uploads/resumable-uploads
 
 import { Upload } from 'tus-js-client'
-import { supabase } from './supabase'
+import { getAccessToken } from './auth'
 
 const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -22,12 +22,6 @@ function tusEndpoint() {
     ? `https://${hosted[1]}.storage.supabase.co`
     : SUPABASE_URL.replace(/\/$/, '')
   return `${base}/storage/v1/upload/resumable`
-}
-
-async function accessToken() {
-  const { data } = await supabase.auth.getSession()
-  if (!data.session) throw new Error('You need to be signed in to upload.')
-  return data.session.access_token
 }
 
 function safeName(name: string) {
@@ -70,10 +64,6 @@ export function uploadPdf(
         contentType: file.type || 'application/pdf',
         cacheControl: '3600',
       },
-      // Fetch the token per request so long uploads survive a token refresh.
-      onBeforeRequest: async (req) => {
-        req.setHeader('authorization', `Bearer ${await accessToken()}`)
-      },
       onProgress: (sent, total) => {
         onProgress(total ? Math.round((sent / total) * 100) : 0)
       },
@@ -81,7 +71,7 @@ export function uploadPdf(
       onSuccess: () => resolve(objectName),
     })
 
-    accessToken()
+    getAccessToken()
       .then(() => upload!.findPreviousUploads())
       .then((previous) => {
         if (aborted) return

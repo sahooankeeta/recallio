@@ -1,7 +1,4 @@
-// Email/password auth backed by Supabase.
-
-import type { User as SupabaseUser } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+// Email/password auth backed by the FastAPI backend (JWT access + refresh tokens).
 
 export type User = { id: string; email: string }
 
@@ -11,64 +8,39 @@ export function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function toUser(u: SupabaseUser): User {
-  return { id: u.id, email: u.email ?? '' }
-}
-
-/** The signed-in user from the stored session, or null. */
+/** The signed-in user, restored from the refresh-token cookie, or null. */
 export async function currentUser(): Promise<User | null> {
-  const { data, error } = await supabase.auth.getSession()
-  console.log('[supabase] getSession', { data, error })
-  return data.session ? toUser(data.session.user) : null
+  // TODO: POST /auth/refresh; 200 → store access token, return user; 401 → null.
+  return null
 }
 
-/** Calls back whenever the user signs in, signs out, or the session refreshes. */
-export function onAuthChange(cb: (user: User | null) => void) {
-  const { data } = supabase.auth.onAuthStateChange((event, session) => {
-    console.log('[supabase] onAuthStateChange', event, session)
-    cb(session ? toUser(session.user) : null)
-  })
-  return () => data.subscription.unsubscribe()
+/** Calls back whenever the user signs in or out. Returns an unsubscribe function. */
+export function onAuthChange(cb: (user: User | null) => void): () => void {
+  // TODO: add cb to a listener set; return a function that removes it.
+  void cb
+  return () => {}
 }
 
-/**
- * Creates an account. Returns the user when signed in right away, or null when
- * the project requires email confirmation first (no session yet).
- */
-export async function register(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email: email.trim(),
-    password,
-    options: { emailRedirectTo: window.location.origin },
-  })
-  console.log('[supabase] signUp', { data, error })
-  if (error) throw new Error(error.message)
-
-  // With email confirmation on, Supabase doesn't reveal existing accounts as
-  // an error; it returns a user with no identities instead.
-  if (data.user && data.user.identities?.length === 0) {
-    throw new Error('An account with this email already exists.')
-  }
-  return data.session ? toUser(data.session.user) : null
+export async function register(email: string, password: string): Promise<User> {
+  // TODO: POST /auth/register, store access token, notify listeners.
+  void email
+  void password
+  throw new Error('Not implemented')
 }
 
-export async function login(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password,
-  })
-  console.log('[supabase] signInWithPassword', { data, error })
-  if (error) {
-    throw new Error(
-      error.code === 'invalid_credentials'
-        ? 'Incorrect email or password.'
-        : error.message,
-    )
-  }
-  return toUser(data.user)
+export async function login(email: string, password: string): Promise<User> {
+  // TODO: POST /auth/login, store access token, notify listeners.
+  void email
+  void password
+  throw new Error('Not implemented')
 }
 
-export async function logout() {
-  const { error } = await supabase.auth.signOut()
-  console.log('[supabase] signOut', { error })
+export async function logout(): Promise<void> {
+  // TODO: POST /auth/logout, clear access token, notify listeners.
+}
+
+/** A valid access token for backend API calls, refreshed when it's about to expire. */
+export async function getAccessToken(): Promise<string> {
+  // TODO: return in-memory token if not near expiry, else refresh (single in-flight call).
+  throw new Error('Not implemented')
 }

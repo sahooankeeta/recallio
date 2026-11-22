@@ -81,7 +81,7 @@ export default function UploadPanel({ userId }: { userId: string }) {
       setStatus('done')
     } catch (err) {
       if (uploadRef.current !== handle) return
-      console.error('[supabase] resumable upload failed', err)
+      console.error('[upload] resumable upload failed', err)
       setError(
         'Upload interrupted. Hit “Resume upload” to continue where it stopped.',
       )

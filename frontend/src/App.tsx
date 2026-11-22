@@ -15,8 +15,7 @@ function App() {
 
   useEffect(() => {
     currentUser().then(setUser)
-    // Keeps the UI in sync with sign-in via email link, token refresh, and
-    // sign-out in another tab.
+    // Keeps the UI in sync when a token refresh fails or the user signs out.
     return onAuthChange(setUser)
   }, [])
   const [view, setView] = useState<View>({ kind: 'upload' })

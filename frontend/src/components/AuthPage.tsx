@@ -21,7 +21,6 @@ export default function AuthPage({ onAuth }: { onAuth: (user: User) => void }) {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
   const [submitting, setSubmitting] = useState(false)
-  const [notice, setNotice] = useState('')
   // The owl keeps its eyes shut while a password field (or its Show/Hide
   // toggle) has focus — whether or not the password is visible.
   const [typingPassword, setTypingPassword] = useState(false)
@@ -57,19 +56,11 @@ export default function AuthPage({ onAuth }: { onAuth: (user: User) => void }) {
     if (Object.keys(found).length) return
 
     setSubmitting(true)
-    setNotice('')
     try {
       const user = isRegister
         ? await register(email, password)
         : await login(email, password)
-      if (user) {
-        onAuth(user)
-      } else {
-        // Email confirmation is required before the first login.
-        setNotice(`We sent a confirmation link to ${email.trim()}. Open it, then log in.`)
-        switchMode('login')
-        setSubmitting(false)
-      }
+      onAuth(user)
     } catch (err) {
       setErrors({
         form: err instanceof Error ? err.message : 'Something went wrong.',
@@ -98,12 +89,6 @@ export default function AuthPage({ onAuth }: { onAuth: (user: User) => void }) {
               ? 'Start turning your notes into quizzes.'
               : 'Log in to keep studying.'}
           </p>
-
-          {notice && !errors.form && (
-            <p className="auth__alert auth__alert--info" role="status">
-              {notice}
-            </p>
-          )}
 
           {errors.form && (
             <p className="auth__alert" role="alert">
